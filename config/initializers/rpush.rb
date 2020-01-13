@@ -135,13 +135,13 @@ Rpush.reflect do |on|
 end
 
 # initializer file may run multiple times but we don't wanna register the app multiple times so first check if it already exists in db and create new one only if it doesn't.
-if (!Rpush::Gcm::App.find_by_name("oxford-app-api"))
-  app = Rpush::Gcm::App.new
-  # let's name this one pushme_droid
-  app.name = "oxford-app-api"
-  # FCM auth key from firebase project
-  app.auth_key = "AAAAHRFyMVo:APA91bH_9u_Nms8ZLKy6NzLZ24zhCqYrFcvhYK5QdiOaM_VrkrL5RO2JlqFdxINXTVTM96c94pPaz0QofzjtZac58rFzviQFE-9bN8KdR97R4jTKMfGeuywP3AFtItTwGB4ekS4_cdwZ"
-  app.connections = 1
-  # save our app in db
-  app.save!
-end
+#if (!Rpush::Gcm::App.find_by_name("pushme_droid"))
+#  app = Rpush::Gcm::App.new
+#  # let's name this one pushme_droid
+#  app.name = "pushme_droid"
+#  # FCM auth key from firebase project
+#  app.auth_key = "AAAAHRFyMVo:APA91bH_9u_Nms8ZLKy6NzLZ24zhCqYrFcvhYK5QdiOaM_VrkrL5RO2JlqFdxINXTVTM96c94pPaz0QofzjtZac58rFzviQFE-9bN8KdR97R4jTKMfGeuywP3AFtItTwGB4ekS4_cdwZ"
+#  app.connections = 1
+#  # save our app in db
+#  app.save!
+#end
