@@ -6,7 +6,7 @@ module V1
     before_action :comprobe_admin, only: :create
 
     def index
-      render json: Notification.all.order(publication_date: :asc).order(category: :asc)
+      render json: Notification.all.where(created_by: @current_user.id).order(publication_date: :asc).order(category: :asc)
     end
 
     def create
@@ -39,7 +39,7 @@ module V1
         errors << 'Fecha vacio o anterior a hoy'
       end
 
-      core_notification = Notification.new(title: title, description: description, publication_date: publication_date)
+      core_notification = Notification.new(title: title, description: description, publication_date: publication_date, created_by: @current_user.id)
 
       return render json: { errors: errors }, status: :internal_server_error if errors.any?
       
@@ -90,7 +90,7 @@ module V1
           notification = user.notifications.new(category: category, title: title, description: description,
                                                 campus: (user.kids&.first&.campus || user.admin_campus),
                                                 event_id: event_id, publication_date: publication_date, role: user.role,
-                                                grade: grades&.join(',') || '', group: groups&.join(',') || '', family_key: user.family_key)
+                                                grade: grades&.join(',') || '', group: groups&.join(',') || '', family_key: user.family_key, created_by: @current_user.id)
           @notifications_created += 1 if notification.save! && user.save!(validate: false)
         rescue
 
@@ -138,7 +138,7 @@ module V1
     Parent = Struct.new(:email, :assist, :seen, :total_kids, :kids)
 
     def notifications_group
-      @notifications = Notification.all
+      @notifications = Notification.all.where(created_by: @current_user.id)
       @notifications = @notifications.by_role(params['roles']) if params['roles'].present?
       @notifications = @notifications.by_categories(params['categories']) if params['categories'].present?
       @notifications = @notifications.by_title(params['title']) if params['title'].present?
@@ -251,7 +251,7 @@ module V1
         @notifications_created = 0
         users&.each do |user|
           notification = user.notifications.new(category: category, title: title, description: description, campus: user.kids&.first&.campus,
-                                                event_id: event_id, publication_date: publication_date, role: user.role, family_key: user.family_key)
+                                                event_id: event_id, publication_date: publication_date, role: user.role, family_key: user.family_key, created_by: @current_user.id)
           @notifications_created += 1 if notification.save! && user.save!(validate: false)
         end
       end
