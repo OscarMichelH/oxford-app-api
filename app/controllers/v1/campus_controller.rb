@@ -22,7 +22,11 @@ module V1
       @campus.each do |campus|
         @names << campus.name
         campus.groups.split(', ').each do |group|
-          grades << group.split(/(?<=\d)(?=[A-Za-z])/).first.to_i
+          if group.length == 3
+            grades << group[0..1]
+          else
+            grades << group[0]
+          end
         end
       end
       @names = @names.uniq
@@ -38,8 +42,11 @@ module V1
       @campus.each do |campus|
         @names << campus.name
         campus.groups.split(', ').each do |group|
-          gruop_array = group.split(/(?<=\d)(?=[A-Za-z])/)
-          @groups << gruop_array.last if grades.include?(gruop_array.first)
+          if group.length == 3
+            @groups << gruop_array.last if grades.include?(group[0..1])
+          else
+            @groups << gruop_array.last if grades.include?(group[0])
+          end
         end
       end
       @names = @names.uniq
