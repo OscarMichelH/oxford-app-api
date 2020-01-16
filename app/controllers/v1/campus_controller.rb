@@ -21,7 +21,7 @@ module V1
       grades = []
       @campus.each do |campus|
         @names << campus.name
-        campus.groups.split(', ').each do |group|
+        campus.groups.split(',').each do |group|
           if group.length == 3
             grades << group[0..1]
           else
@@ -41,11 +41,11 @@ module V1
       @names = []
       @campus.each do |campus|
         @names << campus.name
-        campus.groups.split(', ').each do |group|
+        campus.groups.split(',').each do |group|
           if group.length == 3
-            @groups << gruop_array.last if grades.include?(group[0..1])
+            @groups << group[2] if grades.include?(group[0..1])
           else
-            @groups << gruop_array.last if grades.include?(group[0])
+            @groups << group[1] if grades.include?(group[0])
           end
         end
       end
