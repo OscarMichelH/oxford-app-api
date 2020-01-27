@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_15_233301) do
+ActiveRecord::Schema.define(version: 2020_01_27_044614) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,6 +31,25 @@ ActiveRecord::Schema.define(version: 2020_01_15_233301) do
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.index ["user_id"], name: "index_devices_on_user_id"
+  end
+
+  create_table "events", force: :cascade do |t|
+    t.text "category"
+    t.string "title"
+    t.text "description"
+    t.datetime "publication_date"
+    t.string "role"
+    t.string "campus"
+    t.string "grade"
+    t.string "group"
+    t.integer "total"
+    t.integer "assist"
+    t.integer "view"
+    t.integer "not_view"
+    t.integer "total_kids"
+    t.string "created_by"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "kids", force: :cascade do |t|
@@ -56,7 +75,7 @@ ActiveRecord::Schema.define(version: 2020_01_15_233301) do
   create_table "notifications", force: :cascade do |t|
     t.string "title", null: false
     t.string "description"
-    t.datetime "publication_date", default: "2020-01-13 00:33:07", null: false
+    t.datetime "publication_date", default: "2020-01-27 00:14:44", null: false
     t.string "role"
     t.string "relationship"
     t.string "campus"
@@ -67,11 +86,12 @@ ActiveRecord::Schema.define(version: 2020_01_15_233301) do
     t.boolean "seen", default: false
     t.string "category"
     t.boolean "assist", default: false
-    t.integer "event_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.string "created_by"
+    t.bigint "event_id"
+    t.index ["event_id"], name: "index_notifications_on_event_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
@@ -163,5 +183,6 @@ ActiveRecord::Schema.define(version: 2020_01_15_233301) do
   end
 
   add_foreign_key "devices", "users"
+  add_foreign_key "notifications", "events"
   add_foreign_key "notifications", "users"
 end

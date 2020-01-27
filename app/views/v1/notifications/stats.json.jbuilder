@@ -1,19 +1,19 @@
-json.events @notifications.zip(@totals, @assists, @views, @not_views, @parents, @total_kids) do |notification, total, assist, view, not_view, parent, total_kids|
-  json.id notification.id
-  json.category notification.category
-  json.title notification.title
-  json.description notification.description
-  json.publication_date notification.publication_date
-  json.role notification.role
-  json.campus notification.campus
-  json.grade notification.grade
-  json.group notification.group
-  json.updated_at notification.updated_at
-  json.total total
-  json.assist assist
-  json.view view
-  json.not_view not_view
-  json.total_kids total_kids
+json.events @events.zip(@parents) do |event, parent|
+  json.id event.id
+  json.category event.category
+  json.title event.title
+  json.description event.description
+  json.publication_date event.publication_date
+  json.role event.role
+  json.campus event.campus
+  json.grade event.grade
+  json.group event.group
+  json.updated_at event.updated_at
+  json.total event.total
+  json.assist event.assist
+  json.view event.view
+  json.not_view event.not_view
+  json.total_kids event.total_kids
   json.parents parent
 end
 

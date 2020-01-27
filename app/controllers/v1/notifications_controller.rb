@@ -21,8 +21,6 @@ module V1
       groups = notification_params['groups']&.reject(&:blank?)
       family_keys = notification_params['family_keys']&.reject(&:blank?)
       student_names = notification_params['student_names']&.reject(&:blank?)
-      event_id = (Notification.last&.event_id&.to_i) || 0
-      event_id += 1
 
       errors = []
       errors << 'Categoria obligatoria' if category.blank?
@@ -39,10 +37,14 @@ module V1
         errors << 'Fecha vacio o anterior a hoy'
       end
 
-      core_notification = Notification.new(title: title, description: description, publication_date: publication_date, created_by: @current_user.id)
-
       return render json: { errors: errors }, status: :internal_server_error if errors.any?
-      
+      core_event = Event.new(category: category, title: title, description: description,
+                             publication_date: publication_date,
+                             role: role, campus: campuses.join(',').upcase,
+                             grade: grades, group: groups,
+                             assist: 0, view: 0,
+                             created_by: @current_user.id)
+      core_event.save
       users = []
 
       if role == 'ADMIN'
@@ -69,8 +71,6 @@ module V1
           kid.users.each { |user| users << user }
         end
       else
-        users = User.all
-        users = users.by_admin_campus(campuses) if campuses.present?
         kids = Kid.all
         kids = kids.by_campuses(campuses) if campuses.present?
         kids = kids.by_grades(grades) if grades.present?
@@ -79,7 +79,7 @@ module V1
         kids = kids.by_student_names(student_names) if student_names.present?
         kids = kids.uniq{|t| t.family_key } if kids.present?
         kids&.each do |kid|
-          kid.users.each { |user| users << user }
+          kid&.users.each { |user| users << user }
         end
       end
 
@@ -87,25 +87,43 @@ module V1
       @notifications_created = 0
       users&.each do |user|
         begin
-          notification = user.notifications.new(category: category, title: title, description: description,
-                                                campus: (user.kids&.first&.campus || user.admin_campus),
-                                                event_id: event_id, publication_date: publication_date, role: user.role,
-                                                grade: grades&.join(',') || '', group: groups&.join(',') || '', family_key: user.family_key, created_by: @current_user.id)
-          @notifications_created += 1 if notification.save! && user.save!(validate: false)
+          notification = Notification.new
+          notification.category = category
+          notification.title = title
+          notification.description = description
+          notification.publication_date = publication_date
+          notification.role = role
+          notification.campus = (user.kids&.first&.campus || user.admin_campus)
+          notification.group = grades&.join(',')
+          notification.group = groups&.join(',') || ''
+          notification.family_key = user.family_key
+          notification.role = user.role
+          notification.created_by = @current_user.id
+          notification.user = user
+          notification.event = core_event
+          user.save!(validate: false)
+          core_event.save!
+          @notifications_created += 1 if notification.save!
+          #&& user.save!(validate: false) && core_event.save!
         rescue
 
         end
-
       end
 
-      if @notifications_created.positive?
-        begin
-          notify(users, core_notification)
-        rescue
+      core_event.total = @notifications_created
+      total_kids = 0
+      not_view = 0
+      core_event&.notifications.each do |notification|
+          not_view += 1
+          total_kids += notification&.user&.kids&.count
+      end
+      core_event.not_view = not_view
+      core_event.total_kids = total_kids
 
-        end
+      if @notifications_created.positive? && core_event.save!
         render :create
       else
+        core_event.destroy!
         render json: { errors: 'Users not found for notification delivery'}, status: :partial_content
       end
     end
@@ -121,7 +139,17 @@ module V1
 
     def update_notification
       @notification = Notification.find(params[:notification_id])
+      event = @notification.event
+      assist_changed = @notification.assist
+      view_changed = @notification.seen
+
       if @notification.update(notification_params)
+        event.assist =+ 1 if assist_changed != @notification.assist
+        if view_changed != @notification.seen
+          event.view += 1
+          event.not_view -= 1
+        end
+        event.save!
         render json: @notification
       else
         head(:unauthorized)
@@ -138,67 +166,60 @@ module V1
     Parent = Struct.new(:email, :assist, :seen, :total_kids, :kids)
 
     def notifications_group
-      @notifications = Notification.all.where(created_by: @current_user.id)
-      @notifications = @notifications.by_role(params['roles']) if params['roles'].present?
-      @notifications = @notifications.by_categories(params['categories']) if params['categories'].present?
-      @notifications = @notifications.by_title(params['title']) if params['title'].present?
-      @notifications = @notifications.by_description(params['description']) if params['description'].present?
+      @events = Event.all.where(created_by: @current_user.id)
+      @events = @events.by_role(params['roles']) if params['roles'].present?
+      @events = @events.by_categories(params['categories']) if params['categories'].present?
+      @events = @events.by_title(params['title']) if params['title'].present?
+      @events = @events.by_description(params['description']) if params['description'].present?
       date = notification_params['publication_date'] if notification_params['publication_date'].present?
       if date
         params['from_date'] = date
         params['until_date'] = date
       end
+      @events = @events.by_campuses(params['campuses'].join(',').upcase) if params['campuses'].present?
+      @events = @events.by_grades(params['grades']) if params['grades'].present?
+      @events = @events.by_groups(params['groups']) if params['groups'].present?
 
-      @notifications = @notifications.by_campuses(params['campuses']) if params['campuses'].present?
-      @notifications = @notifications.by_grades(params['grades']) if params['grades'].present?
-      @notifications = @notifications.by_groups(params['groups']) if params['groups'].present?
-      @notifications = @notifications.by_family_keys(params['family_keys']) if params['family_keys'].present?
+      if params['family_keys'].present?
+        events = []
+        User.all.where(family_key: params['family_keys']).each do |user|
+          user.notifications.each do |notification|
+            events << notification.event
+          end
+        end
+        events.uniq!
+        @events = @events.where(id: events)
+      end
+
       if params['from_date'].present? && params['until_date'].present?
         from_date =  DateTime.strptime(params['from_date'], '%Y/%m/%d').in_time_zone("Monterrey") + 6.hours
         until_date = DateTime.strptime(params['until_date'], '%Y/%m/%d').in_time_zone("Monterrey") + 6.hours
         until_date += 24.hours if from_date == until_date
 
         if from_date < until_date
-          @notifications = @notifications.with_date(from_date, until_date)
+          @events = @events.with_date(from_date, until_date)
         else
           return render json: { errors: 'Date arrange invalid'}, status: :internal_server_error
         end
       end
 
-      events = @notifications.distinct.pluck(:event_id)
-      @totals = []
-      @assists = []
-      @views = []
-      @not_views = []
-      @related_kids = []
       @parents = []
-      @individual_assists = []
-      @individual_seen = []
-      @total_kids = []
-      events.each do |event|
-        group = Notification.all.where(event_id: event)
+      @events.each do |event|
         parents = []
-        total_kids = 0
-        group.each do |notification|
-          parent_kids = notification&.user&.kids&.count
-          total_kids += parent_kids
-          parent = Parent.new(notification&.user&.email, notification.assist, notification.seen, parent_kids, notification&.user&.kids)
-          parents << parent
+        event.notifications.each do |notification|
+          parents << Parent.new(notification.user.email, notification.assist,
+                                 notification.seen, notification.user.kids.count,
+                                 notification.user.kids)
         end
-        @total_kids << total_kids
         @parents << parents
-        total = group.count
-        @totals << total
-        assist = group.where(assist: true).count
-        @assists << assist
-        views = group.where(seen: true).count
-        @views << views
-        @not_views << total-views
       end
-      @notifications&.order(publication_date: :asc)&.order(category: :asc)
-      @events_found = @notifications.count
+
+
+      @events&.order(publication_date: :asc)&.order(category: :asc)
+      @events_found = @events.count
       render 'stats'
     end
+
     def create_notification_from_excel
       workbook = Roo::Excel.new(params[:file].path, file_warning: :ignore)
       workbook.default_sheet = workbook.sheets[0]
@@ -305,7 +326,7 @@ module V1
 
     def notification_params
       params.require(:notification).permit(:category, :title, :description, :publication_date,
-                                           :role,:status, :assist, :event_id, :seen,
+                                           :role,:status, :assist, :seen,
                                            :campuses => [], :grades => [], :groups => [],
                                             :family_keys => [], :student_names => [])
     end
