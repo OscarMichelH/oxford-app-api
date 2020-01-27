@@ -254,11 +254,9 @@ module V1
           errors << 'Fecha vacio o anterior a hoy'
         end
 
-        return render json: { errors: errors }, status: :internal_server_error if errors.any?
         grade = Kid.where(family_key: family_key)&.first&.grade
         group = Kid.where(family_key: family_key)&.first&.group
-
-
+        
         core_event = Event.new(category: category, title: title, description: description,
                                publication_date: publication_date,
                                role: 'PARENT', campus: @current_user.admin_campus,
