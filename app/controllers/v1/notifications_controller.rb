@@ -239,9 +239,6 @@ module V1
         publication_date = DateTime.strptime(date, '%Y-%d-%m').in_time_zone("Monterrey") + 6.hours if date
         family_key = workbook.row(row)[headers['CLAVE FAMILIAR']]&.to_s if headers['CLAVE FAMILIAR']
 
-        event_id = (Notification.last&.event_id&.to_i) || 0
-        event_id += 1
-
         errors = []
         errors << 'Categoria obligatoria' if category.blank?
         errors << 'Titulo obligatorio' if title.blank?
@@ -257,7 +254,13 @@ module V1
           errors << 'Fecha vacio o anterior a hoy'
         end
 
-        core_notification = Notification.new(title: title, description: description, publication_date: publication_date)
+        core_event = Event.new(category: category, title: title, description: description,
+                               publication_date: publication_date,
+                               role: role, campus: campuses.join(',').upcase,
+                               grade: grades, group: groups,
+                               assist: 0, view: 0,
+                               created_by: @current_user.id)
+        core_event.save
 
         users = []
 
@@ -271,20 +274,30 @@ module V1
         # Create notifications on db
         @notifications_created = 0
         users&.each do |user|
-          notification = user.notifications.new(category: category, title: title, description: description, campus: user.kids&.first&.campus,
-                                                event_id: event_id, publication_date: publication_date, role: user.role, family_key: user.family_key, created_by: @current_user.id)
-          @notifications_created += 1 if notification.save! && user.save!(validate: false)
+          notification = Notification.new
+          notification.category = category
+          notification.title = title
+          notification.description = description
+          notification.publication_date = publication_date
+          notification.role = role
+          notification.campus = (user.kids&.first&.campus || user.admin_campus)
+          notification.group = grades&.join(',')
+          notification.group = groups&.join(',') || ''
+          notification.family_key = user.family_key
+          notification.role = user.role
+          notification.created_by = @current_user.id
+          notification.user = user
+          notification.event = core_event
+          user.save!(validate: false)
+          core_event.save!
+          @notifications_created += 1 if notification.save!
         end
       end
 
       if @notifications_created&.positive?
-        begin
-          notify(users, core_notification)
-        rescue
-
-        end
         return render :create
       else
+        core_event.destroy!
         return render json: { errors: 'Users not found for notification delivery'}, status: :partial_content
       end
 
