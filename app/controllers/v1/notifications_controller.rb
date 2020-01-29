@@ -100,6 +100,7 @@ module V1
           notification.role = user.role
           notification.created_by = @current_user.id
           notification.user = user
+          notification.student_name = student_names&.join(',') || ''
           notification.event = core_event
           user.save!(validate: false)
           core_event.save!
@@ -256,6 +257,7 @@ module V1
 
         grade = Kid.where(family_key: family_key)&.first&.grade
         group = Kid.where(family_key: family_key)&.first&.group
+        student_name = Kid.where(family_key: family_key)&.first&.name
 
         core_event = Event.new(category: category, title: title, description: description,
                                publication_date: publication_date,
@@ -293,6 +295,7 @@ module V1
           notification.created_by = @current_user.id
           notification.user = user
           notification.event = core_event
+          notification.student_name = student_name
           user.save!(validate: false)
           core_event.save!
           events << core_event
