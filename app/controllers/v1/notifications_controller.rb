@@ -256,7 +256,7 @@ module V1
 
         grade = Kid.where(family_key: family_key)&.first&.grade
         group = Kid.where(family_key: family_key)&.first&.group
-        
+
         core_event = Event.new(category: category, title: title, description: description,
                                publication_date: publication_date,
                                role: 'PARENT', campus: @current_user.admin_campus,
@@ -286,7 +286,7 @@ module V1
           notification.publication_date = publication_date
           notification.role = 'PARENT'
           notification.campus = (user.kids&.first&.campus || user.admin_campus)
-          notification.group = grade
+          notification.grade = grade
           notification.group = group
           notification.family_key = user.family_key
           notification.role = user.role
