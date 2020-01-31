@@ -41,7 +41,7 @@ module V1
       core_event = Event.new(category: category, title: title, description: description,
                              publication_date: publication_date,
                              role: role, campus: campuses&.join(',')&.upcase,
-                             grade: grades, group: groups,
+                             grade: grades&.join(',')&.upcase, group: groups&.join(',')&.upcase,
                              assist: 0, view: 0,
                              created_by: @current_user.id)
       core_event.save

@@ -5,7 +5,7 @@ json.events @events.zip(@parents) do |event, parent|
   json.description event.description
   json.publication_date event.publication_date
   json.role event.role
-  json.campus event.campus
+  json.campus event.campus&.split(',')
   json.grade event.grade
   json.group event.group
   json.updated_at event.updated_at
