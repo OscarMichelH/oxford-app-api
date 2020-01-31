@@ -40,7 +40,7 @@ module V1
       return render json: { errors: errors }, status: :internal_server_error if errors.any?
       core_event = Event.new(category: category, title: title, description: description,
                              publication_date: publication_date,
-                             role: role, campus: campuses.join(',').upcase,
+                             role: role, campus: campuses&.join(',')&.upcase,
                              grade: grades, group: groups,
                              assist: 0, view: 0,
                              created_by: @current_user.id)
@@ -177,7 +177,7 @@ module V1
         params['from_date'] = date
         params['until_date'] = date
       end
-      @events = @events.by_campuses(params['campuses'].join(',').upcase) if params['campuses'].present?
+      @events = @events.by_campuses(params['campuses']&.join(',')&.upcase) if params['campuses'].present?
       @events = @events.by_grades(params['grades']) if params['grades'].present?
       @events = @events.by_groups(params['groups']) if params['groups'].present?
 
