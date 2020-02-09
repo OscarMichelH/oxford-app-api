@@ -168,8 +168,12 @@ module V1
 
     def notifications_group
       @events = Event.all.where(created_by: @current_user.id)
-      @events = @events.by_role(params['roles']) if params['roles'].present?
-      @events = @events.by_categories(params['categories']) if params['categories'].present?
+      if params['roles'].present?
+        @events = @events.by_role(params['roles']) if contains_str(params['roles'])
+      end
+      if params['roles'].present?
+        @events = @events.by_categories(params['categories']) if contains_str(params['categories'])
+      end
       @events = @events.by_title(params['title']) if params['title'].present?
       @events = @events.by_description(params['description']) if params['description'].present?
       date = notification_params['publication_date'] if notification_params['publication_date'].present?
@@ -177,11 +181,17 @@ module V1
         params['from_date'] = date
         params['until_date'] = date
       end
-      @events = @events.by_campuses(params['campuses']&.join(',')&.upcase) if params['campuses'].present?
-      @events = @events.by_grades(params['grades']) if params['grades'].present?
-      @events = @events.by_groups(params['groups']) if params['groups'].present?
+      if params['campuses'].present?
+        @events = @events.by_campuses(params['campuses']&.join(',')&.upcase) if contains_str(params['campuses'])
+      end
+      if params['grades'].present?
+        @events = @events.by_grades(params['grades']) if contains_str(params['grades'])
+      end
+      if params['groups'].present?
+        @events = @events.by_groups(params['groups']) if contains_str(params['groups'])
+      end
 
-      if params['family_keys'].present?
+      if params['family_keys'].present? && contains_str(params['family_keys'])
         events = []
         User.all.where(family_key: params['family_keys']).each do |user|
           user.notifications.each do |notification|
@@ -345,6 +355,10 @@ module V1
     end
 
     private
+
+    def contains_str(array)
+      !array&.reject(&:empty?)&.empty?
+    end
 
     def notification_params
       params.require(:notification).permit(:category, :title, :description, :publication_date,
