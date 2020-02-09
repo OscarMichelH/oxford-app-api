@@ -141,12 +141,12 @@ module V1
     def update_notification
       @notification = Notification.find(params[:notification_id])
       event = @notification.event
-      assist_changed = @notification.assist
-      view_changed = @notification.seen
-
+      assist= @notification.assist
+      seen = @notification.seen
       if @notification.update(notification_params)
-        event.assist =+ 1 if assist_changed != @notification.assist
-        if view_changed != @notification.seen
+        event.assist += 1 if !assist && @notification.assist
+        event.assist -= 1 if assist && !@notification.assist
+        if !seen && @notification.seen
           event.view += 1
           event.not_view -= 1
         end
