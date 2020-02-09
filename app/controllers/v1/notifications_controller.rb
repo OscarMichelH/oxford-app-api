@@ -219,8 +219,8 @@ module V1
         parents = []
         event.notifications.each do |notification|
           parents << Parent.new(notification.user.email, notification.assist,
-                                 notification.seen, notification.user.kids.count,
-                                 notification.user.kids)
+                                 notification.seen, notification.user.kids&.count,
+                                 notification.user&.kids)
         end
         @parents << parents
       end
