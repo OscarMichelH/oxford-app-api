@@ -214,21 +214,7 @@ module V1
           return render json: { errors: 'Date arrange invalid'}, status: :internal_server_error
         end
       end
-
-      @parents = []
-      @events.each do |event|
-        parents = []
-        event.notifications.each do |notification|
-          parents << Parent.new(notification.user.email, notification.assist,
-                                 notification.seen, notification.user.kids&.count,
-                                 notification.user&.kids)
-        end
-        @parents << parents
-      end
-
-
       @events&.order(publication_date: :asc)&.order(category: :asc)
-      @events_found = @events.count
       render 'stats'
     end
 
