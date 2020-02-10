@@ -1,4 +1,4 @@
-json.events @events do |event|
+json.events @events.includes(:notifications).each do |event|
   json.id event.id
   json.category event.category
   json.title event.title
@@ -14,12 +14,12 @@ json.events @events do |event|
   json.view event.view
   json.not_view event.not_view
   json.total_kids event.total_kids
-  json.parents event.notifications do |notifcation|
-    json.email notifcation.user.email
-    json.assist notifcation.assist
-    json.seen notifcation.seen
-    json.total_kids notifcation.user.kids.count
-    json.kids notifcation.user.kids
+  json.parents event.notifications.select(:assist, :seen, :user_id).each do |notification|
+    json.email notification.user.email
+    json.assist notification.assist
+    json.seen notification.seen
+    json.total_kids notification.user.kids.count
+    json.kids notification.user.kids
   end
 end
 
