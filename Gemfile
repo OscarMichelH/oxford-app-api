@@ -37,13 +37,17 @@ gem 'rack-cors'
 # For handle environment secret variables
 gem "figaro"
 
+group :production do
+  gem "puma_worker_killer"
+end
+
 #Push notifications handler
-gem 'rpush'
+#gem 'rpush'
 
 #
-gem 'delayed_job'
-gem 'delayed_job_active_record'
-gem 'daemons'
+#gem 'delayed_job'
+#gem 'delayed_job_active_record'
+#gem 'daemons'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
