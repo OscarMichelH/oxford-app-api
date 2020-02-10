@@ -23,7 +23,7 @@ environment ENV.fetch("RAILS_ENV") { "development" }
 
 
 if Rails.env.production?
-  workers ENV.fetch("WEB_CONCURRENCY") { 2 }
+  workers ENV.fetch("WEB_CONCURRENCY") { 1 }
 end
 
 # Use the `preload_app!` method when specifying a `workers` number.
