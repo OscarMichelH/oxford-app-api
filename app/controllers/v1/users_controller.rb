@@ -39,7 +39,7 @@ module V1
           @users_not_created += 1
           @emails_already_registered << email
         else
-          user = User.new(email: email, password: password, password: password,
+          user = User.new(email: email, password: password,
                           password_confirmation: password, name: name, role: role,
                           family_key: family_key)
           if user.save
