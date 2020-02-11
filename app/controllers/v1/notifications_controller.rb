@@ -6,6 +6,7 @@ module V1
     before_action :comprobe_admin, only: :create
 
     def index
+      @page = 1
       @events = Event&.order(publication_date: :asc)&.order(category: :asc)
       render 'v1/events/index'
     end
