@@ -169,6 +169,7 @@ module V1
     Parent = Struct.new(:email, :assist, :seen, :total_kids, :kids)
 
     def notifications_group
+      @page = 1
       @events = Event.all.where(created_by: @current_user.id)
       if params['roles'].present?
         @events = @events.by_role(params['roles']) if contains_str(params['roles'])
