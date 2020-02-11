@@ -216,7 +216,7 @@ module V1
         end
       end
       @events&.order(publication_date: :asc)&.order(category: :asc)
-      render 'stats'
+      render 'v1/events/index'
     end
 
     def create_notification_from_excel
