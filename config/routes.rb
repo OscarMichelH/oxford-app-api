@@ -22,5 +22,8 @@ Rails.application.routes.draw do
     post 'notifications/update_notification/:notification_id', to: 'notifications#update_notification'
     post 'notifications/create_notifications_from_excel', to: 'notifications#create_notification_from_excel'
     get 'notifications/notification_counters/:user_id', to: 'notifications#notification_counter_by_user_id'
+    post 'notifications/create_notifications_from_excel', to: 'notifications#create_notification_from_excel'
+    post 'notifications/parents_by_event_and_page', to: 'events#show_users_by_page'
+
   end
 end

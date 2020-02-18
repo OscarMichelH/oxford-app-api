@@ -18,7 +18,11 @@ module V1
       end
     end
 
-
+    def show_users_by_page
+        @page = params['page']
+        @events = Event.where(id: params['event_id'])
+        render 'v1/events/index'
+    end
 
     Parent = Struct.new(:email, :assist, :seen, :total_kids, :kids)
     private
