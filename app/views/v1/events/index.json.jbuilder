@@ -16,7 +16,7 @@ json.events @events.includes(:notifications).each do |event|
   json.total_kids event.total_kids
   json.total_pages (event.notifications.count / 20).ceil
   json.current_page @page
-  json.parents event.notifications.select(:assist, :seen, :user_id).limit(20).offset(@page * 20).each do |notification|
+  json.parents event.notifications.select(:assist, :seen, :user_id).limit(20).offset((@page-1) * 20).each do |notification|
     json.email notification.user.email
     json.assist notification.assist
     json.seen notification.seen
