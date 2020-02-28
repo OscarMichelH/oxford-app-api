@@ -84,7 +84,7 @@ module V1
           kid&.users.each { |user| users << user }
         end
         admin_users = User.where(role: 'ADMIN')
-        admin_users = users.by_admin_campus(campuses) if campuses.present?
+        admin_users = admin_users.by_admin_campus(campuses) if campuses.present?
         users = users + admin_users
       end
 
