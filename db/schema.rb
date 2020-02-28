@@ -2,11 +2,11 @@
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# Note that this schema.rb definition is the authoritative source for your
-# database schema. If you need to create the application database on another
-# system, you should be using db:schema:load, not running all the migrations
-# from scratch. The latter is a flawed and unsustainable approach (the more migrations
-# you'll amass, the slower it'll run and the greater likelihood for issues).
+# This file is the source Rails uses to define your schema when running `rails
+# db:schema:load`. When creating a new database, `rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
 
@@ -90,7 +90,7 @@ ActiveRecord::Schema.define(version: 2020_02_02_022250) do
   create_table "notifications", force: :cascade do |t|
     t.string "title", null: false
     t.string "description"
-    t.datetime "publication_date", default: "2020-01-27 00:14:44", null: false
+    t.datetime "publication_date", default: "2020-02-27 22:32:27", null: false
     t.string "role"
     t.string "relationship"
     t.string "campus"
@@ -116,8 +116,8 @@ ActiveRecord::Schema.define(version: 2020_02_02_022250) do
     t.text "certificate"
     t.string "password"
     t.integer "connections", default: 1, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
     t.string "type", null: false
     t.string "auth_key"
     t.string "client_id"
@@ -134,8 +134,8 @@ ActiveRecord::Schema.define(version: 2020_02_02_022250) do
   create_table "rpush_feedback", force: :cascade do |t|
     t.string "device_token"
     t.datetime "failed_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
     t.integer "app_id"
     t.index ["device_token"], name: "index_rpush_feedback_on_device_token"
   end
@@ -154,8 +154,8 @@ ActiveRecord::Schema.define(version: 2020_02_02_022250) do
     t.integer "error_code"
     t.text "error_description"
     t.datetime "deliver_after"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
     t.boolean "alert_is_json", default: false, null: false
     t.string "type", null: false
     t.string "collapse_key"

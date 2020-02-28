@@ -90,32 +90,49 @@ module V1
 
       # Create notifications on db
       @notifications_created = 0
+      notifications = []
       users&.each do |user|
         begin
-          notification = Notification.new
-          notification.category = category
-          notification.title = title
-          notification.description = description
-          notification.publication_date = publication_date
-          notification.role = role
-          notification.campus = (user.kids&.first&.campus || user.admin_campus)
-          notification.group = grades&.join(',')
-          notification.group = groups&.join(',') || ''
-          notification.family_key = user.family_key
-          notification.role = user.role
-          notification.created_by = @current_user.id
-          notification.user = user
-          notification.student_name = student_names&.join(',') || ''
-          notification.event = core_event
-          user.save!(validate: false)
-          core_event.save!
-          @notifications_created += 1 if notification.save!
+          notifications << {
+              category: category,
+              title: title,
+              description: description,
+              publication_date: publication_date,
+              role: role,
+              campus: (user.kids&.first&.campus || user.admin_campus),
+              grade: grades&.join(',') || '',
+              group: groups&.join(',') || '',
+              family_key: user.family_key,
+              created_by: @current_user.id,
+              user_id: user.id,
+              student_name: student_names&.join(',') || '',
+              event_id: core_event.id,
+              created_at: DateTime.now,
+              updated_at: DateTime.now
+          }
+          #notification = Notification.new
+          #notification.category = category
+          #notification.title = title
+          #notification.description = description
+          #notification.publication_date = publication_date
+          #notification.role = role
+          #notification.campus = (user.kids&.first&.campus || user.admin_campus)
+          #notification.grade = grades&.join(',')
+          #notification.group = groups&.join(',') || ''
+          #notification.family_key = user.family_key
+          #notification.created_by = @current_user.id
+          #notification.user = user
+          #notification.student_name = student_names&.join(',') || ''
+          #notification.event = core_event
+          # user.save!(validate: false)
+          # core_event.save!
+          @notifications_created += 1
           #&& user.save!(validate: false) && core_event.save!
         rescue
 
         end
       end
-
+      Notification.insert_all(notifications)
       core_event.total = @notifications_created
       total_kids = 0
       not_view = 0
