@@ -85,7 +85,7 @@ module V1
         end
         admin_users = User.where(role: 'ADMIN')
         admin_users = users.by_admin_campus(campuses) if campuses.present?
-        users<<admin_users
+        users = users + admin_users
       end
 
       # Create notifications on db
