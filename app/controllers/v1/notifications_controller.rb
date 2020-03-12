@@ -194,7 +194,7 @@ module V1
       if params['roles'].present?
         @events = @events.by_role(params['roles']) if contains_str(params['roles'])
       end
-      if params['roles'].present?
+      if params['categories'].present?
         @events = @events.by_categories(params['categories']) if contains_str(params['categories'])
       end
       @events = @events.by_title(params['title']) if params['title'].present?
