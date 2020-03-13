@@ -180,7 +180,7 @@ module V1
     end
 
     def notification_counter_by_user_id
-      notifications = Notification.where(user_id: params[:user_id])
+      notifications = Notification.where(user_id: params[:user_id])&.after_date
       @seen_notifications = notifications.where(seen: true)&.count || 0
       @not_seen_notifications = (notifications&.count || 0) - @seen_notifications
       render 'counters'
